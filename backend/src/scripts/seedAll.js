@@ -1,8 +1,16 @@
 require('dotenv').config();
 const { connectDB, getDB, closeDB } = require('../config/database');
 const { ObjectId } = require('mongodb');
+const crypto = require('crypto');
 
-// ===================== DATOS  =====================
+// ===================== FUNCIONES AUXILIARES =====================
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${hash}`;
+}
+
+// ===================== DATOS DE EJEMPLO =====================
 
 const RESTAURANTS = [
   {
@@ -88,14 +96,14 @@ const RESTAURANTS = [
 ];
 
 const USERS = [
-  { name: 'Carlos Mendoza', email: 'carlos@email.com', phone: '+502 5555-0001', dietaryPrefs: ['sin gluten'], addresses: [{ label: 'Casa', street: 'Zona 10, Calle 5', city: 'Guatemala City', location: { type: 'Point', coordinates: [-90.525, 14.595] }, isDefault: true }] },
-  { name: 'María López', email: 'maria@email.com', phone: '+502 5555-0002', dietaryPrefs: ['vegetariana', 'sin lactosa'], addresses: [{ label: 'Casa', street: 'Calle del Arco', city: 'Antigua Guatemala', location: { type: 'Point', coordinates: [-90.734, 14.558] }, isDefault: true }] },
-  { name: 'José Ramírez', email: 'jose@email.com', phone: '+502 5555-0003', dietaryPrefs: [], addresses: [{ label: 'Oficina', street: 'Zona 14, Torre 2', city: 'Guatemala City', location: { type: 'Point', coordinates: [-90.520, 14.580] }, isDefault: true }] },
-  { name: 'Ana García', email: 'ana@email.com', phone: '+502 5555-0004', dietaryPrefs: ['vegana'], addresses: [{ label: 'Casa', street: 'Zona 15, Vista Hermosa', city: 'Guatemala City', location: { type: 'Point', coordinates: [-90.510, 14.575] }, isDefault: true }] },
-  { name: 'Luis Torres', email: 'luis@email.com', phone: '+502 5555-0005', dietaryPrefs: ['sin mariscos'], addresses: [{ label: 'Casa', street: 'Calzada Roosevelt', city: 'Mixco', location: { type: 'Point', coordinates: [-90.560, 14.630] }, isDefault: true }] },
-  { name: 'Sofia Chen', email: 'sofia@email.com', phone: '+502 5555-0006', dietaryPrefs: [], addresses: [{ label: 'Universidad', street: '18 Avenida 11-95, Zona 15', city: 'Guatemala City', location: { type: 'Point', coordinates: [-90.497, 14.570] }, isDefault: true }] },
-  { name: 'Diego Herrera', email: 'diego@email.com', phone: '+502 5555-0007', dietaryPrefs: ['keto'], addresses: [{ label: 'Casa', street: 'Zona 7, Colonia Landívar', city: 'Guatemala City', location: { type: 'Point', coordinates: [-90.545, 14.635] }, isDefault: true }] },
-  { name: 'Valentina Morales', email: 'valentina@email.com', phone: '+502 5555-0008', dietaryPrefs: ['sin gluten', 'sin lactosa'], addresses: [{ label: 'Casa', street: '5ta Calle Oriente', city: 'Antigua Guatemala', location: { type: 'Point', coordinates: [-90.731, 14.559] }, isDefault: true }] }
+  { name: 'Carlos Mendoza', email: 'carlos@email.com', password: 'carlos123', phone: '+502 5555-0001', dietaryPrefs: ['sin gluten'], addresses: [{ label: 'Casa', street: 'Zona 10, Calle 5', city: 'Guatemala City', location: { type: 'Point', coordinates: [-90.525, 14.595] }, isDefault: true }] },
+  { name: 'María López', email: 'maria@email.com', password: 'maria123', phone: '+502 5555-0002', dietaryPrefs: ['vegetariana', 'sin lactosa'], addresses: [{ label: 'Casa', street: 'Calle del Arco', city: 'Antigua Guatemala', location: { type: 'Point', coordinates: [-90.734, 14.558] }, isDefault: true }] },
+  { name: 'José Ramírez', email: 'jose@email.com', password: 'jose123', phone: '+502 5555-0003', dietaryPrefs: [], addresses: [{ label: 'Oficina', street: 'Zona 14, Torre 2', city: 'Guatemala City', location: { type: 'Point', coordinates: [-90.520, 14.580] }, isDefault: true }] },
+  { name: 'Ana García', email: 'ana@email.com', password: 'ana123', phone: '+502 5555-0004', dietaryPrefs: ['vegana'], addresses: [{ label: 'Casa', street: 'Zona 15, Vista Hermosa', city: 'Guatemala City', location: { type: 'Point', coordinates: [-90.510, 14.575] }, isDefault: true }] },
+  { name: 'Luis Torres', email: 'luis@email.com', password: 'luis123', phone: '+502 5555-0005', dietaryPrefs: ['sin mariscos'], addresses: [{ label: 'Casa', street: 'Calzada Roosevelt', city: 'Mixco', location: { type: 'Point', coordinates: [-90.560, 14.630] }, isDefault: true }] },
+  { name: 'Sofia Chen', email: 'sofia@email.com', password: 'sofia123', phone: '+502 5555-0006', dietaryPrefs: [], addresses: [{ label: 'Universidad', street: '18 Avenida 11-95, Zona 15', city: 'Guatemala City', location: { type: 'Point', coordinates: [-90.497, 14.570] }, isDefault: true }] },
+  { name: 'Diego Herrera', email: 'diego@email.com', password: 'diego123', phone: '+502 5555-0007', dietaryPrefs: ['keto'], addresses: [{ label: 'Casa', street: 'Zona 7, Colonia Landívar', city: 'Guatemala City', location: { type: 'Point', coordinates: [-90.545, 14.635] }, isDefault: true }] },
+  { name: 'Valentina Morales', email: 'valentina@email.com', password: 'valentina123', phone: '+502 5555-0008', dietaryPrefs: ['sin gluten', 'sin lactosa'], addresses: [{ label: 'Casa', street: '5ta Calle Oriente', city: 'Antigua Guatemala', location: { type: 'Point', coordinates: [-90.731, 14.559] }, isDefault: true }] }
 ];
 
 // Menú items por restaurante (se asignan con índice)
@@ -192,7 +200,12 @@ async function seed() {
 
   // 2. Insertar usuarios
   const userDocs = USERS.map(u => ({
-    ...u,
+    name: u.name,
+    email: u.email,
+    password: hashPassword(u.password),
+    phone: u.phone,
+    dietaryPrefs: u.dietaryPrefs,
+    addresses: u.addresses,
     totalOrders: 0,
     totalSpent: 0,
     createdAt: new Date()

@@ -17,7 +17,7 @@ function verifyPassword(password, stored) {
   return hash === verify;
 }
 
-// LOGIN
+// LOGIN - Iniciar sesión por email + password
 router.post('/login', async (req, res, next) => {
   try {
     const db = getDB();
@@ -37,7 +37,7 @@ router.post('/login', async (req, res, next) => {
   }
 });
 
-// REGISTER 
+// REGISTER - Crear cuenta de cliente
 router.post('/register', async (req, res, next) => {
   try {
     const db = getDB();
@@ -80,7 +80,7 @@ router.post('/register', async (req, res, next) => {
   }
 });
 
-// CREATE 
+// CREATE - Crear usuario con direcciones embebidas
 router.post('/', async (req, res, next) => {
   try {
     const db = getDB();
@@ -139,7 +139,7 @@ router.post('/many', async (req, res, next) => {
   }
 });
 
-// READ 
+// READ - Listar usuarios con filtros
 router.get('/', async (req, res, next) => {
   try {
     const db = getDB();
@@ -171,7 +171,7 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// READ 
+// READ - Usuario por ID
 router.get('/:id', async (req, res, next) => {
   try {
     const db = getDB();
@@ -186,7 +186,7 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-// UPDATE
+// UPDATE - Actualizar usuario
 router.put('/:id', async (req, res, next) => {
   try {
     const db = getDB();
@@ -205,7 +205,7 @@ router.put('/:id', async (req, res, next) => {
   }
 });
 
-// UPDATE 
+// UPDATE - Agregar dirección ($push)
 router.patch('/:id/addresses/add', async (req, res, next) => {
   try {
     const db = getDB();
@@ -231,7 +231,7 @@ router.patch('/:id/addresses/add', async (req, res, next) => {
   }
 });
 
-// UPDATE 
+// UPDATE - Remover dirección ($pull)
 router.patch('/:id/addresses/remove', async (req, res, next) => {
   try {
     const db = getDB();
@@ -248,7 +248,7 @@ router.patch('/:id/addresses/remove', async (req, res, next) => {
   }
 });
 
-// UPDATE 
+// UPDATE - Agregar preferencia dietética ($addToSet)
 router.patch('/:id/dietary/add', async (req, res, next) => {
   try {
     const db = getDB();

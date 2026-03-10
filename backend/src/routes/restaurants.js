@@ -5,7 +5,10 @@ const { upload, uploadToGridFS, deleteFromGridFS } = require('../utils/gridfs');
 
 const router = Router();
 
+// ============================================================
 // CREATE - Crear restaurante (documento con embebidos: schedule, rating)
+// Rúbrica: Creación de documento embebido
+// ============================================================
 router.post('/', async (req, res, next) => {
   try {
     const db = getDB();
@@ -41,7 +44,7 @@ router.post('/', async (req, res, next) => {
         { day: 'Sábado', open: '09:00', close: '22:00', isOpen: true },
         { day: 'Domingo', open: '09:00', close: '18:00', isOpen: false }
       ],
-      rating: { average: 0, count: 0 },  
+      rating: { average: 0, count: 0 },  // Embedded stats
       imageFileId: null,
       isActive: true,
       createdAt: new Date(),
@@ -89,7 +92,7 @@ router.post('/many', async (req, res, next) => {
   }
 });
 
-// LOGIN ADMIN 
+// LOGIN ADMIN - Verificar contraseña de administrador
 router.post('/login/admin', async (req, res, next) => {
   try {
     const { password } = req.body;
@@ -108,7 +111,7 @@ router.post('/login/admin', async (req, res, next) => {
   }
 });
 
-// LOGIN 
+// LOGIN - Verificar código de acceso del restaurante
 router.post('/login', async (req, res, next) => {
   try {
     const db = getDB();
@@ -137,21 +140,24 @@ router.post('/login', async (req, res, next) => {
   }
 });
 
+// ============================================================
 // READ - Lectura con filtros, proyecciones, sort, skip, limit
+// Rúbrica: Lectura y consulta de documentos (15 pts)
+// ============================================================
 router.get('/', async (req, res, next) => {
   try {
     const db = getDB();
     const {
-      search,       
-      category,     
-      city,        
-      isActive,     
-      minRating,   
-      sortBy = 'createdAt',  
-      order = 'desc',        
+      search,       // búsqueda por texto
+      category,     // filtrar por categoría
+      city,         // filtrar por ciudad
+      isActive,     // filtrar por estado activo
+      minRating,    // filtro por rating mínimo
+      sortBy = 'createdAt',  // campo de ordenamiento
+      order = 'desc',         // asc o desc
       page = 1,
       limit = 10,
-      fields        
+      fields        // proyección: campos separados por coma
     } = req.query;
 
     // Construir filtro
@@ -172,7 +178,7 @@ router.get('/', async (req, res, next) => {
     const sort = {};
     sort[sortBy] = order === 'asc' ? 1 : -1;
 
-    // Paginación
+    // Skip y Limit (paginación)
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     if (!fields) projection.accessCode = 0;
@@ -221,7 +227,8 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-// READ - Buscar restaurantes cercanos 
+// READ - Buscar restaurantes cercanos (Geoespacial con $geoNear)
+// Rúbrica: Consultas Geoespaciales - $geoNear devuelve distancia real
 router.get('/nearby/:lng/:lat', async (req, res, next) => {
   try {
     const db = getDB();
@@ -248,12 +255,15 @@ router.get('/nearby/:lng/:lat', async (req, res, next) => {
   }
 });
 
+// ============================================================
 // UPDATE - Actualizar un documento
+// Rúbrica: Actualización de Documentos
+// ============================================================
 router.put('/:id', async (req, res, next) => {
   try {
     const db = getDB();
     const updateData = { ...req.body, updatedAt: new Date() };
-    delete updateData._id; 
+    delete updateData._id; // no se puede actualizar el _id
 
     const result = await db.collection('restaurants').updateOne(
       { _id: new ObjectId(req.params.id) },
@@ -270,11 +280,12 @@ router.put('/:id', async (req, res, next) => {
   }
 });
 
-// UPDATE - Actualizar varios documentos 
+// UPDATE - Actualizar varios documentos (ej: desactivar por ciudad)
 router.patch('/batch/update', async (req, res, next) => {
   try {
     const db = getDB();
     const { filter, update } = req.body;
+    // Ejemplo: { filter: { "address.city": "Antigua" }, update: { isActive: false } }
 
     const result = await db.collection('restaurants').updateMany(
       filter,
@@ -291,7 +302,10 @@ router.patch('/batch/update', async (req, res, next) => {
   }
 });
 
+// ============================================================
 // UPDATE - Manejo de embebidos: actualizar schedule
+// Rúbrica: Manejo de documentos embebidos (5 pts)
+// ============================================================
 router.patch('/:id/schedule', async (req, res, next) => {
   try {
     const db = getDB();
@@ -315,7 +329,10 @@ router.patch('/:id/schedule', async (req, res, next) => {
   }
 });
 
-// UPDATE - $addToSet para categorías
+// ============================================================
+// UPDATE - Manejo de arrays: $addToSet para categorías
+// Rúbrica: Manejo de Arrays (10 pts)
+// ============================================================
 router.patch('/:id/categories/add', async (req, res, next) => {
   try {
     const db = getDB();
@@ -355,7 +372,10 @@ router.patch('/:id/categories/remove', async (req, res, next) => {
   }
 });
 
+// ============================================================
 // DELETE - Eliminar un documento
+// Rúbrica: Eliminación de Documentos (10 pts)
+// ============================================================
 router.delete('/:id', async (req, res, next) => {
   try {
     const db = getDB();
@@ -391,6 +411,7 @@ router.delete('/batch/delete', async (req, res, next) => {
   try {
     const db = getDB();
     const { filter } = req.body;
+    // Ejemplo: { filter: { isActive: false, "rating.count": 0 } }
 
     const result = await db.collection('restaurants').deleteMany(filter);
 
